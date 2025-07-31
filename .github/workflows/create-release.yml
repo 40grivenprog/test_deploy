@@ -34,19 +34,28 @@ jobs:
         # Разбиваем версию на части
         IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
         
+        # Получаем лейблы из PR
+        LABELS="${{ join(github.event.pull_request.labels.*.name, ' ') }}"
+        
         # Определяем тип обновления
-        if [[ "${{ github.event.label.name }}" == "major" ]]; then
+        if [[ "$LABELS" == *"major"* ]]; then
           NEW_MAJOR=$((MAJOR + 1))
           NEW_MINOR=0
           NEW_PATCH=0
-        elif [[ "${{ github.event.label.name }}" == "minor" ]]; then
+          VERSION_TYPE="major"
+        elif [[ "$LABELS" == *"minor"* ]]; then
           NEW_MAJOR=$MAJOR
           NEW_MINOR=$((MINOR + 1))
           NEW_PATCH=0
-        elif [[ "${{ github.event.label.name }}" == "patch" ]]; then
+          VERSION_TYPE="minor"
+        elif [[ "$LABELS" == *"patch"* ]]; then
           NEW_MAJOR=$MAJOR
           NEW_MINOR=$MINOR
           NEW_PATCH=$((PATCH + 1))
+          VERSION_TYPE="patch"
+        else
+          echo "❌ No version label found in: $LABELS"
+          exit 1
         fi
         
         NEW_VERSION="${NEW_MAJOR}.${NEW_MINOR}.${NEW_PATCH}"
@@ -54,27 +63,25 @@ jobs:
         
         echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
         echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+        echo "version_type=$VERSION_TYPE" >> $GITHUB_OUTPUT
 
     - name: Create Draft Release
-      uses: actions/create-release@v1
+      run: |
+        gh release create ${{ steps.calculate_version.outputs.new_tag }} \
+          --title "Release ${{ steps.calculate_version.outputs.new_tag }}" \
+          --notes "## Changes
+        
+        This is a draft release for version ${{ steps.calculate_version.outputs.new_tag }}
+        
+        ### Version Type: ${{ steps.calculate_version.outputs.version_type }}
+        
+        - Previous version: ${{ steps.get_version.outputs.latest_tag }}
+        - New version: ${{ steps.calculate_version.outputs.new_tag }}
+        
+        ### Next Steps
+        1. Review the changes
+        2. Publish this release to trigger image build
+        3. Update \`helm/go-app/values.yaml\` with the new image tag" \
+          --draft
       env:
-        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-      with:
-        tag_name: ${{ steps.calculate_version.outputs.new_tag }}
-        release_name: Release ${{ steps.calculate_version.outputs.new_tag }}
-        body: |
-          ## Changes
-          
-          This is a draft release for version ${{ steps.calculate_version.outputs.new_tag }}
-          
-          ### Version Type: ${{ github.event.label.name }}
-          
-          - Previous version: ${{ steps.get_version.outputs.latest_tag }}
-          - New version: ${{ steps.calculate_version.outputs.new_tag }}
-          
-          ### Next Steps
-          1. Review the changes
-          2. Publish this release to trigger image build
-          3. Update `helm/go-app/values.yaml` with the new image tag
-        draft: true
-        prerelease: false 
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }} 
