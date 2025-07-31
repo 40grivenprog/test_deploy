@@ -29,11 +29,7 @@ jobs:
         script: |
           const labels = '${{ github.event.pull_request.labels.*.name }}';
           
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: `## 🚫 **Version Label Required**
+          const message = `## 🚫 **Version Label Required**
 
 ❌ **Missing version label**
 
@@ -53,7 +49,13 @@ This PR cannot be merged without a version label.
 4. 🔄 Update \`helm/go-app/values.yaml\` with new tag
 5. 🚀 Merge this PR
 
-### 📝 **Current labels:** ${labels}`
+### 📝 **Current labels:** ${labels}`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: message
           });
 
     - name: Comment on PR - Success
@@ -65,11 +67,7 @@ This PR cannot be merged without a version label.
           const versionLabel = labels.includes('major') ? 'major' : 
                               labels.includes('minor') ? 'minor' : 'patch';
           
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: `## ✅ **Version Label Check Passed**
+          const message = `## ✅ **Version Label Check Passed**
 
 🎉 This PR is ready for the next step!
 
@@ -83,7 +81,13 @@ This PR cannot be merged without a version label.
 4. 🔄 Update \`helm/go-app/values.yaml\` with the new tag
 5. 🚀 Merge this PR
 
-### 📝 **Current labels:** ${labels}`
+### 📝 **Current labels:** ${labels}`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: message
           });
 
     - name: Fail if no version label
