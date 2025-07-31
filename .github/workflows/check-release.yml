@@ -1,0 +1,93 @@
+name: Check Version Label
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  check-version-label:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check for version labels
+      id: check_labels
+      run: |
+        LABELS="${{ github.event.pull_request.labels.*.name }}"
+        
+        if [[ "$LABELS" == *"major"* ]] || [[ "$LABELS" == *"minor"* ]] || [[ "$LABELS" == *"patch"* ]]; then
+          echo "has_version_label=true" >> $GITHUB_OUTPUT
+          echo "✅ Version label found: $LABELS"
+        else
+          echo "has_version_label=false" >> $GITHUB_OUTPUT
+          echo "❌ No version label found. Available labels: $LABELS"
+        fi
+
+    - name: Comment on PR - Missing Label
+      if: steps.check_labels.outputs.has_version_label == 'false'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## 🚫 **Version Label Required**
+
+❌ **Missing version label**
+
+This PR cannot be merged without a version label.
+
+### 📋 **Please add one of these labels:**
+
+- \`patch\` - for bug fixes (0.0.1 → 0.0.2)
+- \`minor\` - for new features (0.0.1 → 0.1.0)  
+- \`major\` - for breaking changes (0.0.1 → 1.0.0)
+
+### 🔄 **What happens next:**
+
+1. ✅ Add version label
+2. 🔄 Draft release created automatically
+3. 🔄 Publish the release to build image
+4. 🔄 Update \`helm/go-app/values.yaml\` with new tag
+5. 🚀 Merge this PR
+
+### 📝 **Current labels:** ${{ github.event.pull_request.labels.*.name }}`
+          });
+
+    - name: Comment on PR - Success
+      if: steps.check_labels.outputs.has_version_label == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const labels = '${{ github.event.pull_request.labels.*.name }}';
+          const versionLabel = labels.includes('major') ? 'major' : 
+                              labels.includes('minor') ? 'minor' : 'patch';
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## ✅ **Version Label Check Passed**
+
+🎉 This PR is ready for the next step!
+
+**Version label:** \`${versionLabel}\`
+
+### 📋 **Next Steps:**
+
+1. ✅ Version label added (\`${versionLabel}\`)
+2. 🔄 Wait for draft release creation
+3. 🔄 Publish the draft release
+4. 🔄 Update \`helm/go-app/values.yaml\` with the new tag
+5. 🚀 Merge this PR
+
+### 📝 **Current labels:** ${labels}`
+          });
+
+    - name: Fail if no version label
+      if: steps.check_labels.outputs.has_version_label == 'false'
+      run: |
+        echo "❌ Version label check failed!"
+        echo "Available labels: ${{ github.event.pull_request.labels.*.name }}"
+        echo "Please add one of: major, minor, patch"
+        exit 1 
