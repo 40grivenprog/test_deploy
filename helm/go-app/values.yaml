@@ -1,0 +1,19 @@
+replicaCount: 1
+
+image:
+  repository: 352383909524.dkr.ecr.eu-central-1.amazonaws.com/test-deploy
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 30081
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi 

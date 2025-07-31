@@ -39,14 +39,14 @@ jobs:
     - name: Update Helm chart
       run: |
         # Update image tag in values.yaml
-        sed -i "s|image: nginx:.*|image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}|" helm/nginx/values.yaml
-        sed -i "s|pullPolicy: .*|pullPolicy: Always|" helm/nginx/values.yaml
+        sed -i "s|tag: \".*\"|tag: \"${{ github.sha }}\"|" helm/go-app/values.yaml
+        sed -i "s|pullPolicy: .*|pullPolicy: Always|" helm/go-app/values.yaml
 
     - name: Commit and push changes
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add helm/nginx/values.yaml
+        git add helm/go-app/values.yaml
         git commit -m "Update image to ${{ github.sha }}" || exit 0
         git push
 
