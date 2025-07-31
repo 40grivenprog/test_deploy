@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# Build artifacts
+bin/
+dist/
+
+# Terraform
+infra/
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Test files
+*_test.go
+test/ 
