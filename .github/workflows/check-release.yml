@@ -31,7 +31,7 @@ jobs:
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: '## 🚫 **Version Label Required**\n\n❌ **Missing version label**\n\nThis PR cannot be merged without a version label.\n\n### 📋 **Please add one of these labels:**\n\n- `patch` - for bug fixes (0.0.1 → 0.0.2)\n- `minor` - for new features (0.0.1 → 0.1.0)\n- `major` - for breaking changes (0.0.1 → 1.0.0)\n\n### 🔄 **What happens next:**\n\n1. ✅ Add version label\n2. 🔄 Draft release created automatically\n3. 🔄 Publish the release to build image\n4. 🔄 Update `helm/go-app/values.yaml` with new tag\n5. 🚀 Merge this PR'
+            body: '## 🚫 **Version Label Required**\n\n❌ **Missing version label**\n\nThis PR cannot be merged without a version label.\n\n### 📋 **Please add one of these labels:**\n\n- `patch` - for bug fixes (0.0.1 → 0.0.2)\n- `minor` - for new features (0.0.1 → 0.1.0)\n- `major` - for breaking changes (0.0.1 → 1.0.0)\n\n### 🔄 **What happens next:**\n\n1. ✅ Add version label\n2. 🔄 Merge PR to main (creates draft release)\n3. 🔄 Publish the release to build image\n4. 🔄 Update `helm/go-app/values.yaml` with new tag\n5. 🚀 Merge this PR'
           });
 
     - name: Comment on PR - Success
@@ -47,7 +47,7 @@ jobs:
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: '## ✅ **Version Label Check Passed**\n\n🎉 This PR is ready for the next step!\n\n**Version label:** `' + versionLabel + '`\n\n### 📋 **Next Steps:**\n\n1. ✅ Version label added (`' + versionLabel + '`)\n2. 🔄 Wait for draft release creation\n3. 🔄 Publish the draft release\n4. 🔄 Update `helm/go-app/values.yaml` with the new tag\n5. 🚀 Merge this PR\n\n### 📝 **Current labels:** ' + labels
+            body: '## ✅ **Version Label Check Passed**\n\n🎉 This PR is ready for the next step!\n\n**Version label:** `' + versionLabel + '`\n\n### 📋 **Next Steps:**\n\n1. ✅ Version label added (`' + versionLabel + '`)\n2. 🔄 Merge PR to main (creates draft release)\n3. 🔄 Publish the draft release\n4. 🔄 Update `helm/go-app/values.yaml` with the new tag\n5. 🚀 Merge this PR\n\n### 📝 **Current labels:** ' + labels
           });
 
     - name: Fail if no version label
