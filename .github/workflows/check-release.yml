@@ -51,7 +51,7 @@ jobs:
       if: steps.check_labels.outputs.has_version_label == 'true'
       uses: actions/github-script@v7
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN_WRITE }}
+        github-token: ${{ secrets.RELEASE_TOKEN }}
         script: |
           const labels = ${{ join(github.event.pull_request.labels.*.name, ',') }}.split(',');
           let versionLabel = '';
