@@ -1,0 +1,80 @@
+name: Create Draft Release
+
+on:
+  pull_request:
+    types: [labeled, unlabeled]
+
+jobs:
+  create-draft-release:
+    if: contains(github.event.pull_request.labels.*.name, 'major') || contains(github.event.pull_request.labels.*.name, 'minor') || contains(github.event.pull_request.labels.*.name, 'patch')
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Get current version
+      id: get_version
+      run: |
+        # Получаем последний тег
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+        
+        # Извлекаем версию
+        VERSION=$(echo $LATEST_TAG | sed 's/v//')
+        echo "current_version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Calculate new version
+      id: calculate_version
+      run: |
+        CURRENT_VERSION="${{ steps.get_version.outputs.current_version }}"
+        
+        # Разбиваем версию на части
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+        
+        # Определяем тип обновления
+        if [[ "${{ github.event.label.name }}" == "major" ]]; then
+          NEW_MAJOR=$((MAJOR + 1))
+          NEW_MINOR=0
+          NEW_PATCH=0
+        elif [[ "${{ github.event.label.name }}" == "minor" ]]; then
+          NEW_MAJOR=$MAJOR
+          NEW_MINOR=$((MINOR + 1))
+          NEW_PATCH=0
+        elif [[ "${{ github.event.label.name }}" == "patch" ]]; then
+          NEW_MAJOR=$MAJOR
+          NEW_MINOR=$MINOR
+          NEW_PATCH=$((PATCH + 1))
+        fi
+        
+        NEW_VERSION="${NEW_MAJOR}.${NEW_MINOR}.${NEW_PATCH}"
+        NEW_TAG="v${NEW_VERSION}"
+        
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+
+    - name: Create Draft Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.calculate_version.outputs.new_tag }}
+        release_name: Release ${{ steps.calculate_version.outputs.new_tag }}
+        body: |
+          ## Changes
+          
+          This is a draft release for version ${{ steps.calculate_version.outputs.new_tag }}
+          
+          ### Version Type: ${{ github.event.label.name }}
+          
+          - Previous version: ${{ steps.get_version.outputs.latest_tag }}
+          - New version: ${{ steps.calculate_version.outputs.new_tag }}
+          
+          ### Next Steps
+          1. Review the changes
+          2. Publish this release to trigger image build
+          3. Update `helm/go-app/values.yaml` with the new image tag
+        draft: true
+        prerelease: false 
