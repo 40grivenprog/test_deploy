@@ -27,6 +27,8 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
+          const labels = '${{ github.event.pull_request.labels.*.name }}';
+          
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
@@ -51,7 +53,7 @@ This PR cannot be merged without a version label.
 4. 🔄 Update \`helm/go-app/values.yaml\` with new tag
 5. 🚀 Merge this PR
 
-### 📝 **Current labels:** ${{ github.event.pull_request.labels.*.name }}`
+### 📝 **Current labels:** ${labels}`
           });
 
     - name: Comment on PR - Success
