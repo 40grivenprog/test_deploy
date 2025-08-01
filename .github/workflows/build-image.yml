@@ -46,14 +46,12 @@ jobs:
         script: |
           // Создаём комментарий к release через issues API
           const release = ${{ github.event.release }};
-          const commentBody = `🚀 **Image built and pushed to ECR!**
-
-**Image:** \`${process.env.ECR_REGISTRY}/${process.env.ECR_REPOSITORY}:${process.env.RELEASE_TAG}\`
-
-### Next Steps
-1. Create a new PR to update \`helm/go-app/values-dev.yaml\` or \`helm/go-app/values-prod.yaml\`
-2. Change the image tag to: \`${process.env.RELEASE_TAG}\`
-3. ArgoCD ApplicationSet will automatically sync the new version`;
+          const commentBody = '🚀 **Image built and pushed to ECR!**\n\n' +
+            '**Image:** `' + process.env.ECR_REGISTRY + '/' + process.env.ECR_REPOSITORY + ':' + process.env.RELEASE_TAG + '`\n\n' +
+            '### Next Steps\n' +
+            '1. Create a new PR to update `helm/go-app/values-dev.yaml` or `helm/go-app/values-prod.yaml`\n' +
+            '2. Change the image tag to: `' + process.env.RELEASE_TAG + '`\n' +
+            '3. ArgoCD ApplicationSet will automatically sync the new version';
 
           // Получаем release notes и добавляем комментарий
           const currentBody = release.body || '';
