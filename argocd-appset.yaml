@@ -9,18 +9,8 @@ spec:
       elements:
       - env: dev
         namespace: dev
-        nodePort: "30082"
-        replicas: 1
-        resources:
-          cpu: "200m"
-          memory: "256Mi"
       - env: prod
         namespace: prod
-        nodePort: "30081"
-        replicas: 2
-        resources:
-          cpu: "500m"
-          memory: "512Mi"
   
   template:
     metadata:
@@ -29,7 +19,6 @@ spec:
       finalizers:
         - resources-finalizer.argocd.argoproj.io
       labels:
-        environment: '{{env}}'
         project: test-deploy
     spec:
       project: default
