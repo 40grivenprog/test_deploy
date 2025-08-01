@@ -59,7 +59,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	response := Response{
-		Message:   "Hello, World dev2!!!",
+		Message:   "Hello, World prod!!!",
 		Timestamp: time.Now(),
 		Status:    "success",
 	}
