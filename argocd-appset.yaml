@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: go-app-multienv
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - env: dev
+        namespace: dev
+        nodePort: "30082"
+        replicas: 1
+        resources:
+          cpu: "200m"
+          memory: "256Mi"
+      - env: prod
+        namespace: prod
+        nodePort: "30081"
+        replicas: 2
+        resources:
+          cpu: "500m"
+          memory: "512Mi"
+  
+  template:
+    metadata:
+      name: '{{env}}-app'
+      namespace: argocd
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+      labels:
+        environment: '{{env}}'
+        project: test-deploy
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/40grivenprog/test_deploy
+        targetRevision: HEAD
+        path: helm/go-app
+        helm:
+          valueFiles:
+            - values-{{env}}.yaml
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true 
