@@ -18,13 +18,16 @@ jobs:
     - name: Get current version
       id: get_version
       run: |
-        # Получаем последний тег
-        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        # Получаем последний тег (сортировка по версии)
+        LATEST_TAG=$(git tag --sort=-version:refname | head -n1 2>/dev/null || echo "v0.0.0")
         echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
         
         # Извлекаем версию
         VERSION=$(echo $LATEST_TAG | sed 's/v//')
         echo "current_version=$VERSION" >> $GITHUB_OUTPUT
+        
+        echo "Debug: Latest tag found: $LATEST_TAG"
+        echo "Debug: Current version: $VERSION"
 
     - name: Calculate new version
       id: calculate_version
@@ -64,6 +67,11 @@ jobs:
         echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
         echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
         echo "version_type=$VERSION_TYPE" >> $GITHUB_OUTPUT
+        
+        echo "Debug: Current version parts - MAJOR:$MAJOR MINOR:$MINOR PATCH:$PATCH"
+        echo "Debug: New version parts - MAJOR:$NEW_MAJOR MINOR:$NEW_MINOR PATCH:$NEW_PATCH"
+        echo "Debug: Labels found: $LABELS"
+        echo "Debug: Version type: $VERSION_TYPE"
 
     - name: Create Draft Release
       run: |
