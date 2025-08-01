@@ -40,19 +40,28 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          github.rest.repos.createReleaseComment({
+          // Создаём комментарий к release через issues API
+          const release = ${{ github.event.release }};
+          const commentBody = `🚀 **Image built and pushed to ECR!**
+
+**Image:** \`${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.event.release.tag_name }}\`
+
+### Next Steps
+1. Create a new PR to update \`helm/go-app/values.yaml\`
+2. Change the image tag to: \`${{ github.event.release.tag_name }}\`
+3. ArgoCD will automatically sync the new version`;
+
+          // Получаем release notes и добавляем комментарий
+          const currentBody = release.body || '';
+          const updatedBody = currentBody + '\n\n---\n\n' + commentBody;
+          
+          // Обновляем release с новым комментарием
+          await github.rest.repos.updateRelease({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            release_id: ${{ github.event.release.id }},
-            body: `🚀 **Image built and pushed to ECR!**
-          
-          **Image:** \`${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.event.release.tag_name }}\`
-          
-          ### Next Steps
-          1. Create a new PR to update \`helm/go-app/values.yaml\`
-          2. Change the image tag to: \`${{ github.event.release.tag_name }}\`
-          3. ArgoCD will automatically sync the new version`
-          })
+            release_id: release.id,
+            body: updatedBody
+          });
 
     - name: Notify completion
       run: |
