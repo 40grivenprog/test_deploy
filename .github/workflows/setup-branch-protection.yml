@@ -24,11 +24,7 @@ jobs:
                 contexts: ['Check Version Label']
               },
               enforce_admins: false,
-              required_pull_request_reviews: {
-                required_approving_review_count: 1,
-                dismiss_stale_reviews: true,
-                require_code_owner_reviews: false
-              },
+              required_pull_request_reviews: null,
               restrictions: null,
               allow_force_pushes: false,
               allow_deletions: false
@@ -37,7 +33,7 @@ jobs:
             console.log('✅ Branch protection rules updated successfully!');
             console.log('🔒 Main branch is now protected');
             console.log('📋 Required checks: Check Version Label');
-            console.log('👥 Required reviews: 1');
+            console.log('🚫 Code reviews: disabled');
           } catch (error) {
             console.log('⚠️ Could not update branch protection rules:', error.message);
             console.log('You may need to set this up manually in repository settings.');
