@@ -13,10 +13,10 @@
 
 ```bash
 # Port-forward для Go API (prod)
-kubectl port-forward svc/dev-app-go-app -n prod 8080:8080
+kubectl port-forward svc/dev-app-go-app -n dev 8080:8080
 
 # Port-forward для Go API (dev)
-kubectl port-forward svc/prod-app-go-app -n dev 8081:8080
+kubectl port-forward svc/prod-app-go-app -n prod 8081:8080
 
 # Приложения будут доступны по адресам:
 # Prod: http://localhost:8080
