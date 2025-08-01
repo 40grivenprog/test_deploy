@@ -36,35 +36,6 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-    - name: Comment on release
-      uses: actions/github-script@v7
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
-        RELEASE_TAG: ${{ github.event.release.tag_name }}
-      with:
-        script: |
-          // Создаём комментарий к release через issues API
-          const release = ${{ github.event.release }};
-          const commentBody = '🚀 **Image built and pushed to ECR!**\n\n' +
-            '**Image:** `' + process.env.ECR_REGISTRY + '/' + process.env.ECR_REPOSITORY + ':' + process.env.RELEASE_TAG + '`\n\n' +
-            '### Next Steps\n' +
-            '1. Create a new PR to update `helm/go-app/values-dev.yaml` or `helm/go-app/values-prod.yaml`\n' +
-            '2. Change the image tag to: `' + process.env.RELEASE_TAG + '`\n' +
-            '3. ArgoCD ApplicationSet will automatically sync the new version';
-
-          // Получаем release notes и добавляем комментарий
-          const currentBody = release.body || '';
-          const updatedBody = currentBody + '\n\n---\n\n' + commentBody;
-          
-          // Обновляем release с новым комментарием
-          await github.rest.repos.updateRelease({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            release_id: release.id,
-            body: updatedBody
-          });
-
     - name: Notify completion
       run: |
         echo "🚀 Image built and pushed to ECR!"
